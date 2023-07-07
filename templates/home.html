@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Engine</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-migrate-1.4.1.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</head>
+<script>
+function getPath(){
+
+    $("#start_indexing").show();
+    var path= $('#text1').val();
+    if(path[0]==":"){
+        $("#start_indexing").hide();
+        $("#path_error").show();
+    }
+    else{
+        $.ajax({
+                  url: "/for_path",
+                  type: "POST",
+                  data: {path:path}
+              }).done(function(response) {
+                    var html = "Total Time for Indexing : "+response;
+                    $("#time_div").append(html);
+                    $(".query_div").show();
+                    $("#start_indexing").hide();
+                    $("#path_div").hide();
+                });
+    }
+};
+function get_doc(){
+        $('#doc_output').empty();
+        var doc_id= $('#doc_id').val();
+
+        $.ajax({
+                  url: "/for_doc",
+                  type: "POST",
+                  data: {doc_id:doc_id}
+              }).done(function(response) {
+                    var html = "<br><p>" + response + "</p>";
+                    $("#doc_output").append(html);
+
+                });
+
+
+};
+function search() {
+    $('.show-data').empty();
+    var query= $('#text2').val();
+    var directory = "";
+    if(query[0] == ":" && query.indexOf("index") == 1){
+        $("#query_div").hide();
+        $("#path_div").hide();
+        directory = query.substring(7);
+        $("#start_indexing").hide();
+
+    }
+    $.ajax({
+              url: "/for_query",
+              type: "POST",
+              data: {query:query,
+                     directory:directory}
+          }).done(function(response) {
+            var html= "<br><br><br><p> <b> RESULT : </b></p>";
+<!--            response =JSON.parse(response);-->
+                console.log(response);
+                if(response[0]=="q"){
+                    $("#body_id").hide();
+                    $("#for_quit").show();
+                }
+                else{
+
+
+                    $("#query_div").hide();
+                     $.each(response,function(key,val){
+                     console.log(val);
+                        html+="<li>"+val+"</li>"+"<br>"
+                    });
+                    html +="<br>";
+                    html +="<p>Total Documents are: "+response.length+" </p><br>";
+                    $(".show-data").append(html);
+                    $("#open_doc").show();
+                }
+            });
+};
+
+    $(document).ready(function(){
+        $(".query_div").hide();
+        $("#start_indexing").hide();
+        $("#for_quit").hide();
+        $("#path_error").hide();
+        $("#open_doc").hide();
+    });
+  </script>
+<body class="container" id="body_id">
+<p>
+    Search Engine Milestone 1<br><br>
+<div id="path_div" class="form-group">
+    Corpus Path : <input type="text" class="form-control" id="text1" name="text1"><br><br>
+    <button class="btn btn-primary" id="btn_path" onclick="getPath()">Submit</button>
+</div>
+<div id="start_indexing">Indexing....</div>
+<div id="time_div"></div>
+<div class="query_div form-group">
+    Enter Query : <input type="text" class="form-control" id="text2" name="text2"><br><br>
+    <button class="btn btn-dark" id="btn_query" onclick="search()">Submit</button>
+</div>
+<div id="path_error">error for path. path is not valid</div>
+</p>
+<div class="show-data" >
+</div>
+<div id="open_doc" class="form-group">
+    Enter Document ID which you want to open : <input class="form-control" type="text" id="doc_id" name="doc_id"><br><br>
+    <button class="btn btn-info" id="btn_doc_id" onclick="get_doc()">Submit</button>
+    <div id="doc_output"></div>
+</div>
+</body>
+<div id="for_quit">You closed the web app<div>
+</html>
+
